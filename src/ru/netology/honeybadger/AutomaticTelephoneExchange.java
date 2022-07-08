@@ -8,6 +8,8 @@ public class AutomaticTelephoneExchange {
     private final static int IMITATION_OF_A_SPECIALIST_WORK = 4000;
     private LinkedBlockingQueue<String> linkedBlockingQueue = new LinkedBlockingQueue();
 
+    private boolean workIsFinished;
+
 //Выбрал LinkedBlockingQueue, так как эта очередь упорядочивает элементы FIFO (первым пришел-первым обслужен),
 // то что и необходимо, первый позвонил первому и ответили и так в порядке "честной" очереди звонков
 
@@ -15,26 +17,27 @@ public class AutomaticTelephoneExchange {
         try {
             for (int i = 1; i <= NUMBER_OF_CALLS; i++) {
                 Thread.sleep(GENERATING_CALL);
-                this.linkedBlockingQueue.put(" звонок " + i);
+                linkedBlockingQueue.put(" звонок " + i);
                 System.out.println("Поступил звонок " + i);
             }
 //ждём пока все звонки будут обработаны и коллекция станет пустой
-            while (!this.linkedBlockingQueue.isEmpty()) ;
+            while (!linkedBlockingQueue.isEmpty()) ;
+            workIsFinished = true;
 //поток АТС усыпляем на время обработки последнего заказа
             Thread.sleep(IMITATION_OF_A_SPECIALIST_WORK);
-//"мягко" останавливаем поток АТС
-            Thread.currentThread().interrupt();
+            System.out.println("\nСпециалисты обработали все звонки!");
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
     public void soundProcessing() {
-        while (!Thread.currentThread().isInterrupted()) {
+        Thread.currentThread().setName("Специалист " + (int) (Math.random() * IMITATION_OF_A_SPECIALIST_WORK));
+        while (!workIsFinished) {
             try {
-                String call = this.linkedBlockingQueue.poll();
+                String call = linkedBlockingQueue.poll();
                 if (call != null) {
-                    System.out.println("Специалист " + Thread.currentThread().getName() + " ответил на" + call);
+                    System.out.println(Thread.currentThread().getName() + " ответил на" + call);
                     Thread.sleep(IMITATION_OF_A_SPECIALIST_WORK);
                 }
             } catch (InterruptedException e) {

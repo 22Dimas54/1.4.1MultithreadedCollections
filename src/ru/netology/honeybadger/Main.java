@@ -1,37 +1,23 @@
 package ru.netology.honeybadger;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class Main {
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private static final AutomaticTelephoneExchange automaticTelephoneExchange = new AutomaticTelephoneExchange();
+    private static final int COUNT = 3;
 
     public static void main(String[] args) {
         AutomaticTelephoneExchange automaticTelephoneExchange = new AutomaticTelephoneExchange();
-        Thread threadATS = new Thread(null, () -> automaticTelephoneExchange.generatingCallsAndCloseATS());
-        threadATS.setName("АТС");
-        threadATS.start();
+        addTasksInExecutorService();
+        executorService.shutdown();
+    }
 
-        Thread tdSpecialist1 = new Thread(null, () -> automaticTelephoneExchange.soundProcessing());
-        Thread tdSpecialist2 = new Thread(null, () -> automaticTelephoneExchange.soundProcessing());
-        Thread tdSpecialist3 = new Thread(null, () -> automaticTelephoneExchange.soundProcessing());
-
-        tdSpecialist1.setName("1");
-        tdSpecialist2.setName("2");
-        tdSpecialist3.setName("3");
-
-        tdSpecialist1.start();
-        tdSpecialist2.start();
-        tdSpecialist3.start();
-
-        try {
-            threadATS.join();
-            tdSpecialist1.interrupt();
-            tdSpecialist2.interrupt();
-            tdSpecialist3.interrupt();
-            tdSpecialist1.join();
-            tdSpecialist2.join();
-            tdSpecialist3.join();
-            System.out.println("Специалисты обработали все звонки!");
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    private static void addTasksInExecutorService() {
+        executorService.submit(() -> automaticTelephoneExchange.generatingCallsAndCloseATS());
+        for (int i = 0; i < COUNT; i++) {
+            executorService.submit(() -> automaticTelephoneExchange.soundProcessing());
         }
-
     }
 }
